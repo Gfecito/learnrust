@@ -1,10 +1,11 @@
 use std::{
+    fs,
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
 };
 
 fn main() {
-    println!("Hello, world!");
+    println!("Server online.");
 
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
     for stream in listener.incoming() {
@@ -25,5 +26,15 @@ fn handle_connection(mut stream: TcpStream) {
 
     println!("Request: {:#?}", http_request);
 
-    println!("Hello, world!");
+    let status = "HTTP/1.1 200 OK";
+    let content = fs::read_to_string("src/hello.html").unwrap();
+    let length = content.len();
+
+    let response = format!(
+        "{status}\r\n\
+        Content-Length: {length}\r\n\r\n\
+        {content}"
+    );
+
+    stream.write_all(response.as_bytes()).unwrap();
 }
