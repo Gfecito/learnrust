@@ -20,19 +20,20 @@ fn handle_connection(mut stream: TcpStream) {
     let buf_reader = BufReader::new(&mut stream);
     let request_line: String = buf_reader.lines().next().unwrap().unwrap();
 
-    if request_line == "GET / HTTP/1.1" {
-        let status = "HTTP/1.1 200 OK";
-        let content = fs::read_to_string("src/hello.html").unwrap();
-        let length = content.len();
-
-        let response = format!(
-            "{status}\r\n\
-            Content-Length: {length}\r\n\r\n\
-            {content}"
-        );
-
-        stream.write_all(response.as_bytes()).unwrap();
+    let (status, file_name) = if request_line == "GET / HTTP/1.1" {
+        ("HTTP/1.1 200 OK", "hello.html")
     } else {
-        println!("Non-root/non-GET request!");
-    }
+        ("HTTP/1.1 404 NOT FOUND", "404.html")
+    };
+
+    let content = fs::read_to_string(file_name).unwrap();
+    let length = content.len();
+
+    let response = format!(
+        "{status}\r\n\
+        Content-Length: {length}\r\n\r\n\
+        {content}"
+    );
+
+    stream.write_all(response.as_bytes()).unwrap();
 }
